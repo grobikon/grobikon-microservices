@@ -1,4 +1,4 @@
-package ru.grobikon.grobikonserver;
+package ru.grobikon.micro.grobikonserver;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
