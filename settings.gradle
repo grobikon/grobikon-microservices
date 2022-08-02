@@ -2,3 +2,4 @@ rootProject.name = 'grobikon-microservices'
 
 includeBuild 'grobikon-server'
 includeBuild 'grobikon-config'
+includeBuild 'grobikon-gateway'
