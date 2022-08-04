@@ -8,8 +8,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication
 @EnableEurekaClient
-@ComponentScan(basePackages = {"ru.grobikon.common"})
-@EnableJpaRepositories(basePackages = {"ru.grobikon.common.grobikoncommonentity"})
+@ComponentScan(basePackages = {"ru.grobikon.common", "ru.grobikon.micro.grobikontodo"})
+@EnableJpaRepositories(basePackages = {"ru.grobikon.micro.grobikontodo"})
 public class GrobikonTodoApplication {
 
     public static void main(String[] args) {
