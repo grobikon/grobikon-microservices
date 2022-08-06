@@ -8,7 +8,8 @@ import ru.grobikon.common.grobikoncommonentity.entity.User;
 @Component
 public class UserWebClient {
 
-    private static final String BASE_URL = "http://localhost:8765/grobikon-users/user";
+    private static final String BASE_URL = "http://localhost:8765/grobikon-users/user/";
+    private static final String BASE_URL_DATA = "http://localhost:8765/grobikon-todo/data/";
 
     /**
      * Проверка - существует ли пользователь
@@ -18,7 +19,7 @@ public class UserWebClient {
         try{
             var user = WebClient.create(BASE_URL)
                     .post()
-                    .uri("/id")
+                    .uri("id")
                     .bodyValue(userId)  //тело запроса
                     .retrieve() //вызывает сам микросервис
                     .bodyToFlux(User.class)//полученный объект будет упакован в объект Flux(для асинхронного кода чтобы можно было подписываться на изменения и т.д.)
@@ -44,5 +45,15 @@ public class UserWebClient {
                 .bodyValue(userId)  //тело запроса
                 .retrieve() //вызывает сам микросервис
                 .bodyToFlux(User.class);//полученный объект будет упакован в объект Flux(для асинхронного кода чтобы можно было подписываться на изменения и т.д.)
+    }
+
+    // иниц. начальных данных
+    public Flux<Boolean> initUserDataAsync(Long userId) {
+        return WebClient.create(BASE_URL_DATA)
+                .post()
+                .uri("init")
+                .bodyValue(userId)  //тело запроса
+                .retrieve() //вызывает сам микросервис
+                .bodyToFlux(Boolean.class);//полученный объект будет упакован в объект Flux(для асинхронного кода чтобы можно было подписываться на изменения и т.д.)
     }
 }
