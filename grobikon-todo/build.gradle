@@ -27,6 +27,9 @@ dependencies {
     implementation 'ru.grobikon.common:grobikon-common-entity'
     implementation 'ru.grobikon.common:grobikon-utils'
 
+    // обязательно должна быть именно библиотека с netflix в названии (иначе проект может не запуститься)
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix:+'
+
     // lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'

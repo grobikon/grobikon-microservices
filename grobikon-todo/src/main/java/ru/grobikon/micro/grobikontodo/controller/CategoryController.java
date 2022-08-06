@@ -77,7 +77,13 @@ public class CategoryController {
 //        }
 
         //вызов мс через feign интерфейс
-        if (userFeignClient.findUserById(category.getUserId()) != null) {
+        var user = userFeignClient.findUserById(category.getUserId());
+
+        if (user == null) {
+            return new ResponseEntity("система пользователей недоступна, попробуйте позже.", HttpStatus.NOT_FOUND);
+        }
+
+        if (user.getBody() != null) {
             return ResponseEntity.ok(categoryService.add(category)); // возвращаем добавленный объект с заполненным ID
         }
 
