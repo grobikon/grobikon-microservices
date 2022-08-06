@@ -17,10 +17,10 @@ public class UserWebClient {
         try{
             var user = WebClient.create(BASE_URL)
                     .post()
-                    .uri("id")
-                    .bodyValue(userId)
-                    .retrieve()
-                    .bodyToFlux(User.class)
+                    .uri("/id")
+                    .bodyValue(userId)  //тело запроса
+                    .retrieve() //вызывает сам микросервис
+                    .bodyToFlux(User.class)//полученный объект будет упакован в объект Flux(для асинхронного кода чтобы можно было подписываться на изменения и т.д.)
                     .blockFirst(); //Блокируем поток до получения 1й записи
 
             //вызов сервиса
