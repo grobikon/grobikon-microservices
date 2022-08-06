@@ -24,6 +24,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
     implementation 'ru.grobikon.common:grobikon-common-entity'
+    implementation 'ru.grobikon.common:grobikon-utils'
 
     // lombok
     compileOnly 'org.projectlombok:lombok'
