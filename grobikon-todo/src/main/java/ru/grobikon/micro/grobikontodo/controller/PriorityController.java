@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.grobikon.common.grobikoncommonentity.entity.Priority;
+import ru.grobikon.common.grobikonutils.resttemplate.UserRestClient;
 import ru.grobikon.micro.grobikontodo.search.PrioritySearchValues;
 import ru.grobikon.micro.grobikontodo.service.PriorityService;
 
@@ -32,12 +33,15 @@ import java.util.NoSuchElementException;
 public class PriorityController {
 
     // доступ к данным из БД
-    private PriorityService priorityService;
+    private final PriorityService priorityService;
+    private final UserRestClient userRestClient;
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public PriorityController(PriorityService priorityService) {
+    public PriorityController(PriorityService priorityService,
+                              UserRestClient userRestClient) {
         this.priorityService = priorityService;
+        this.userRestClient = userRestClient;
     }
 
 
@@ -66,8 +70,13 @@ public class PriorityController {
             return new ResponseEntity("missed param: color", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        // save работает как на добавление, так и на обновление
-        return ResponseEntity.ok(priorityService.add(priority));
+        //если такой пользователь существует
+        if (userRestClient.userExists(priority.getUserId())) {
+            return ResponseEntity.ok(priorityService.add(priority)); // возвращаем добавленный объект с заполненным ID
+        }
+
+        //Если пользователь не существует
+        return new ResponseEntity("user id = " + priority.getUserId() + " not found", HttpStatus.NOT_ACCEPTABLE);
     }
 
 

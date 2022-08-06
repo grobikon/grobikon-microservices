@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.grobikon.common.grobikoncommonentity.entity.Task;
+import ru.grobikon.common.grobikonutils.resttemplate.UserRestClient;
 import ru.grobikon.micro.grobikontodo.search.TaskSearchValues;
 import ru.grobikon.micro.grobikontodo.service.TaskService;
 
@@ -38,12 +39,15 @@ public class TaskController {
 
     public static final String ID_COLUMN = "id"; // имя столбца id
     private final TaskService taskService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
+    private final UserRestClient userRestClient;
 
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService,
+                          UserRestClient userRestClient) {
         this.taskService = taskService;
+        this.userRestClient = userRestClient;
     }
 
 
@@ -68,8 +72,13 @@ public class TaskController {
             return new ResponseEntity("missed param: title", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        return ResponseEntity.ok(taskService.add(task)); // возвращаем созданный объект со сгенерированным id
+        //если такой пользователь существует
+        if (userRestClient.userExists(task.getUserId())) {
+            return ResponseEntity.ok(taskService.add(task)); // возвращаем созданный объект со сгенерированным id
+        }
 
+        //Если пользователь не существует
+        return new ResponseEntity("user id = " + task.getUserId() + " not found", HttpStatus.NOT_ACCEPTABLE);
     }
 
 
