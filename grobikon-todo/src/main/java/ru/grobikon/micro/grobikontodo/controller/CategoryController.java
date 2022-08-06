@@ -62,10 +62,21 @@ public class CategoryController {
             return new ResponseEntity("missed param: title MUST be not null", HttpStatus.NOT_ACCEPTABLE);
         }
 
+//        //если такой пользователь существует
+//        if (userRestClient.userExists(category.getUserId())) {
+//            return ResponseEntity.ok(categoryService.add(category)); // возвращаем добавленный объект с заполненным ID
+//        }
+//
         //если такой пользователь существует
         if (userWebClient.userExists(category.getUserId())) {
             return ResponseEntity.ok(categoryService.add(category)); // возвращаем добавленный объект с заполненным ID
         }
+
+        //подписываемся на результат
+//        userWebClient.userExistsAsync(category.getUserId())
+//                .subscribe(user -> {
+//                    System.out.println("user = " + user);
+//                });
 
         //Если пользователь не существует
         return new ResponseEntity("user id = " + category.getUserId() + " not found", HttpStatus.NOT_ACCEPTABLE);

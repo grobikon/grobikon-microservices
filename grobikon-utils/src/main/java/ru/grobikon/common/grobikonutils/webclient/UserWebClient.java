@@ -2,6 +2,7 @@ package ru.grobikon.common.grobikonutils.webclient;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import ru.grobikon.common.grobikoncommonentity.entity.User;
 
 @Component
@@ -30,5 +31,18 @@ public class UserWebClient {
         }
 
         return false; // если статус не был 200
+    }
+
+
+    /**
+     * Проверка - существует ли пользователь
+     */
+    public Flux<User> userExistsAsync(Long userId) {
+        return WebClient.create(BASE_URL)
+                .post()
+                .uri("/id")
+                .bodyValue(userId)  //тело запроса
+                .retrieve() //вызывает сам микросервис
+                .bodyToFlux(User.class);//полученный объект будет упакован в объект Flux(для асинхронного кода чтобы можно было подписываться на изменения и т.д.)
     }
 }
