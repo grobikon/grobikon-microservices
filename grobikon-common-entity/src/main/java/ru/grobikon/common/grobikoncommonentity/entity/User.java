@@ -19,7 +19,7 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
-@Table(name = "user_data", schema = "users", catalog = "planner-user")
+@Table(name = "user_data", schema = "users", catalog = "user")
 @Setter
 @Getter
 @AllArgsConstructor
