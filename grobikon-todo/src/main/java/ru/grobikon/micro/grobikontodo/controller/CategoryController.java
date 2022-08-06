@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.grobikon.common.grobikoncommonentity.entity.Category;
+import ru.grobikon.common.grobikonutils.resttemplate.UserRestClient;
 import ru.grobikon.micro.grobikontodo.search.CategorySearchValues;
 import ru.grobikon.micro.grobikontodo.service.CategoryService;
 
@@ -26,12 +27,15 @@ import java.util.NoSuchElementException;
 public class CategoryController {
 
     // доступ к данным из БД
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+    private final UserRestClient userRestClient;
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public CategoryController(CategoryService categoryService) {
+    public CategoryController(CategoryService categoryService,
+                              UserRestClient userRestClient) {
         this.categoryService = categoryService;
+        this.userRestClient = userRestClient;
     }
 
     @PostMapping("/all")
@@ -54,7 +58,13 @@ public class CategoryController {
             return new ResponseEntity("missed param: title MUST be not null", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        return ResponseEntity.ok(categoryService.add(category)); // возвращаем добавленный объект с заполненным ID
+        //если такой пользователь существует
+        if (userRestClient.userExists(category.getUserId())) {
+            return ResponseEntity.ok(categoryService.add(category)); // возвращаем добавленный объект с заполненным ID
+        }
+
+        //Если пользователь не существует
+        return new ResponseEntity("user id = " + category.getUserId() + " not found", HttpStatus.NOT_ACCEPTABLE);
     }
 
 

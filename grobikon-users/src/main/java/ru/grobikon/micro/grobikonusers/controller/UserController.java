@@ -138,18 +138,19 @@ public class UserController {
     @PostMapping("/id")
     public ResponseEntity<User> findById(@RequestBody Long id) {
 
-        User user = null;
+        var user = userService.findById(id);
 
         // можно обойтись и без try-catch, тогда будет возвращаться полная ошибка (stacktrace)
         // здесь показан пример, как можно обрабатывать исключение и отправлять свой текст/статус
         try {
-            user = userService.findById(id);
+            if (user.isPresent()) { //если объект найден
+                return ResponseEntity.ok(user.get());   //получаем User из Optional
+            }
         } catch (NoSuchElementException e) { // если объект не будет найден
             e.printStackTrace();
-            return new ResponseEntity("id=" + id + " not found", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        return ResponseEntity.ok(user);
+        return new ResponseEntity("id=" + id + " not found", HttpStatus.NOT_ACCEPTABLE);
     }
 
     // получение уникального объекта по email
