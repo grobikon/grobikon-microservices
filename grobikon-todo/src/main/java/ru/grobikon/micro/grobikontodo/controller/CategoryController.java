@@ -30,8 +30,11 @@ public class CategoryController {
 
     // доступ к данным из БД
     private final CategoryService categoryService;
+    // микросервисы для работы с пользователями
     private final UserRestClient userRestClient;
+    // микросервисы для работы с пользователями
     private final UserWebClient userWebClient;
+    // клиент для вызова мс
     private final UserFeignClient userFeignClient;
 
     // используем автоматическое внедрение экземпляра класса через конструктор

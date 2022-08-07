@@ -9,7 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.grobikon.common.grobikoncommonentity.entity.User;
 import ru.grobikon.common.grobikonutils.webclient.UserWebClient;
-import ru.grobikon.micro.grobikonusers.mq.MessageProducer;
+import ru.grobikon.micro.grobikonusers.mq.func.MessageFuncActions;
+import ru.grobikon.micro.grobikonusers.mq.legacy.MessageProducer;
 import ru.grobikon.micro.grobikonusers.search.UserSearchValues;
 import ru.grobikon.micro.grobikonusers.service.UserService;
 
@@ -39,15 +40,18 @@ public class UserController {
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
     private final UserWebClient userWebClient;
     private final MessageProducer messageProducer;
+    private final MessageFuncActions messageFuncActions;
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
     public UserController(UserService userService,
                           UserWebClient userWebClient,
-                          MessageProducer messageProducer) {
+                          MessageProducer messageProducer,
+                          MessageFuncActions messageFuncActions) {
         this.userService = userService;
         this.userWebClient = userWebClient;
         this.messageProducer = messageProducer;
+        this.messageFuncActions = messageFuncActions;
     }
 
 
@@ -83,10 +87,13 @@ public class UserController {
 //                    .subscribe(result -> System.out.println("user populated: " + result));
 //        }
 
-        if (user != null) {
-            // отправляем сообщение в канал
-            messageProducer.initUserData(user.getId());
-        }
+//        if (user != null) {
+//            // отправляем сообщение в канал
+//            messageProducer.initUserData(user.getId());
+//        }
+
+        // отправляем сообщение с помощью функ. кода
+        messageFuncActions.sendNewUserMessage(user.getId());
 
         return ResponseEntity.ok(userService.add(user)); // возвращаем созданный объект со сгенерированным id
 
