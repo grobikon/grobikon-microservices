@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.grobikon.common.grobikoncommonentity.entity.User;
 import ru.grobikon.common.grobikonutils.webclient.UserWebClient;
+import ru.grobikon.micro.grobikonusers.mq.MessageProducer;
 import ru.grobikon.micro.grobikonusers.search.UserSearchValues;
 import ru.grobikon.micro.grobikonusers.service.UserService;
 
@@ -37,13 +38,16 @@ public class UserController {
     public static final String ID_COLUMN = "id"; // имя столбца id
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
     private final UserWebClient userWebClient;
+    private final MessageProducer messageProducer;
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
     public UserController(UserService userService,
-                          UserWebClient userWebClient) {
+                          UserWebClient userWebClient,
+                          MessageProducer messageProducer) {
         this.userService = userService;
         this.userWebClient = userWebClient;
+        this.messageProducer = messageProducer;
     }
 
 
@@ -73,10 +77,15 @@ public class UserController {
         //добавляем пользователя
         user = userService.add(user);
 
+//        if (user != null) {
+//            //заполняем начальные данные пользователя (в параллельном потоке)
+//            userWebClient.initUserDataAsync(user.getId())
+//                    .subscribe(result -> System.out.println("user populated: " + result));
+//        }
+
         if (user != null) {
-            //заполняем начальные данные пользователя (в параллельном потоке)
-            userWebClient.initUserDataAsync(user.getId())
-                    .subscribe(result -> System.out.println("user populated: " + result));
+            // отправляем сообщение в канал
+            messageProducer.initUserData(user.getId());
         }
 
         return ResponseEntity.ok(userService.add(user)); // возвращаем созданный объект со сгенерированным id
