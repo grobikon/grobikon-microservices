@@ -146,7 +146,8 @@ public class TaskController {
 
     // поиск по любым параметрам TaskSearchValues
     @PostMapping("/search")
-    public ResponseEntity<Page<Task>> search(@RequestBody TaskSearchValues taskSearchValues) throws ParseException {
+    public ResponseEntity<Page<Task>> search(@RequestBody TaskSearchValues taskSearchValues, @AuthenticationPrincipal Jwt jwt) throws ParseException {
+        taskSearchValues.setUserId(jwt.getSubject());
 
         // исключить NullPointerException
         String title = taskSearchValues.getTitle() != null ? taskSearchValues.getTitle() : null;
@@ -162,14 +163,6 @@ public class TaskController {
 
         Integer pageNumber = taskSearchValues.getPageNumber() != null ? taskSearchValues.getPageNumber() : null;
         Integer pageSize = taskSearchValues.getPageSize() != null ? taskSearchValues.getPageSize() : null;
-
-        Long userId = taskSearchValues.getUserId() != null ? taskSearchValues.getUserId() : null; // для показа задач только этого пользователя
-
-        // проверка на обязательные параметры
-/*        if (userId == null || userId == 0) {
-            return new ResponseEntity("missed param: user id", HttpStatus.NOT_ACCEPTABLE);
-        }*/
-
 
         // чтобы захватить в выборке все задачи по датам, независимо от времени - можно выставить время с 00:00 до 23:59
 
@@ -222,7 +215,7 @@ public class TaskController {
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize, sort);
 
         // результат запроса с постраничным выводом
-        Page<Task> result = taskService.findByParams(title, completed, priorityId, categoryId, userId, dateFrom, dateTo, pageRequest);
+        Page<Task> result = taskService.findByParams(title, completed, priorityId, categoryId, taskSearchValues.getUserId(), dateFrom, dateTo, pageRequest);
 
         // результат запроса
         return ResponseEntity.ok(result);

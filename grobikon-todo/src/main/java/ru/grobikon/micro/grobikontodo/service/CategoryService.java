@@ -42,13 +42,13 @@ public class CategoryService {
     }
 
     // поиск категорий пользователя по названию
-    public List<Category> findByTitle(String text, Long userId) {
+    public List<Category> findByTitle(String text, String userId) {
         return repository.findByTitle(text, userId);
     }
 
     // поиск категории по ID
-    public Category findById(Long id) {
-        return repository.findById(id).get(); // т.к. возвращается Optional - можно получить объект методом get()
+    public Category findById(Long userId) {
+        return repository.findById(userId).get(); // т.к. возвращается Optional - можно получить объект методом get()
     }
 
 
