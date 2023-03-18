@@ -1,7 +1,5 @@
 package ru.grobikon.common.grobikoncommonentity.entity;
 
-
-
 /*
 
 пользователь - основной объект, с которым связаны все остальные (через внешние ключи)

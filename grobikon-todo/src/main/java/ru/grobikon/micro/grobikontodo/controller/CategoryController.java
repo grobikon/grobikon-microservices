@@ -3,11 +3,12 @@ package ru.grobikon.micro.grobikontodo.controller;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import ru.grobikon.common.grobikoncommonentity.entity.Category;
 import ru.grobikon.common.grobikonutils.resttemplate.UserRestClient;
 import ru.grobikon.common.grobikonutils.webclient.UserWebClient;
-import ru.grobikon.micro.grobikontodo.feign.UserFeignClient;
 import ru.grobikon.micro.grobikontodo.search.CategorySearchValues;
 import ru.grobikon.micro.grobikontodo.service.CategoryService;
 
@@ -34,19 +35,15 @@ public class CategoryController {
     private final UserRestClient userRestClient;
     // микросервисы для работы с пользователями
     private final UserWebClient userWebClient;
-    // клиент для вызова мс
-    private final UserFeignClient userFeignClient;
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
     public CategoryController(CategoryService categoryService,
                               UserRestClient userRestClient,
-                              UserWebClient userWebClient,
-                              UserFeignClient userFeignClient) {
+                              UserWebClient userWebClient) {
         this.categoryService = categoryService;
         this.userRestClient = userRestClient;
         this.userWebClient = userWebClient;
-        this.userFeignClient = userFeignClient;
     }
 
     @PostMapping("/all")
@@ -56,7 +53,9 @@ public class CategoryController {
 
 
     @PostMapping("/add")
-    public ResponseEntity<Category> add(@RequestBody Category category) {
+    public ResponseEntity<Category> add(@RequestBody Category category, @AuthenticationPrincipal Jwt jwt) {
+
+        category.setUserId(jwt.getSubject());
 
         // проверка на обязательные параметры
         if (category.getId() != null && category.getId() != 0) { // это означает, что id заполнено
@@ -69,32 +68,10 @@ public class CategoryController {
             return new ResponseEntity("missed param: title MUST be not null", HttpStatus.NOT_ACCEPTABLE);
         }
 
-//        //если такой пользователь существует
-//        if (userRestClient.userExists(category.getUserId())) {
-//            return ResponseEntity.ok(categoryService.add(category)); // возвращаем добавленный объект с заполненным ID
-//        }
-//
-        //если такой пользователь существует
-//        if (userWebClient.userExists(category.getUserId())) {
-//            return ResponseEntity.ok(categoryService.add(category)); // возвращаем добавленный объект с заполненным ID
-//        }
-
-        //вызов мс через feign интерфейс
-        var user = userFeignClient.findUserById(category.getUserId());
-
-        if (user == null) {
-            return new ResponseEntity("система пользователей недоступна, попробуйте позже.", HttpStatus.NOT_FOUND);
-        }
-
-        if (user.getBody() != null) {
+        //пользователь его данные уже передаются в access token, по этому ни чего не нужно получать дополнительно
+        if (!category.getUserId().isBlank()) {
             return ResponseEntity.ok(categoryService.add(category)); // возвращаем добавленный объект с заполненным ID
         }
-
-        //подписываемся на результат
-//        userWebClient.userExistsAsync(category.getUserId())
-//                .subscribe(user -> {
-//                    System.out.println("user = " + user);
-//                });
 
         //Если пользователь не существует
         return new ResponseEntity("user id = " + category.getUserId() + " not found", HttpStatus.NOT_ACCEPTABLE);

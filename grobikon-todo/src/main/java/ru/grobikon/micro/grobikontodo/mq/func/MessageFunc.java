@@ -23,7 +23,7 @@ public class MessageFunc {
     // получает id пользователя и запускает создание тестовых данных
     // название метода должно совпадать с настройками definition и bindings в файлах properties (или yml)
     @Bean
-    public Consumer<Message<Long>> newUserActionConsume() {
+    public Consumer<Message<String>> newUserActionConsume() {
         return message -> testDataService.initTestData(message.getPayload());
     }
 

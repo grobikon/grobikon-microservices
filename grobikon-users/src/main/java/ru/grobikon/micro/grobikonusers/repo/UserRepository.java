@@ -6,11 +6,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 import ru.grobikon.common.grobikoncommonentity.entity.User;
 
 // принцип ООП: абстракция-реализация - здесь описываем все доступные способы доступа к данным
-@Repository
+//@Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
     // возвращает только либо 0 либо 1 объект, т.к. email уникален для каждого пользователя

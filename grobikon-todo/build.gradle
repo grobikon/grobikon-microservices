@@ -27,6 +27,7 @@ dependencies {
     implementation 'ru.grobikon.common:grobikon-common-entity'
     implementation 'ru.grobikon.common:grobikon-utils'
     implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
     // обязательно должна быть именно библиотека с netflix в названии (иначе проект может не запуститься)
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix:+'

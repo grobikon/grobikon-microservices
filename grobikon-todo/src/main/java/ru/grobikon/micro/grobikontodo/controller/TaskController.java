@@ -6,6 +6,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import ru.grobikon.common.grobikoncommonentity.entity.Task;
 import ru.grobikon.common.grobikonutils.resttemplate.UserRestClient;
@@ -59,12 +61,14 @@ public class TaskController {
 
     // добавление
     @PostMapping("/add")
-    public ResponseEntity<Task> add(@RequestBody Task task) {
+    public ResponseEntity<Task> add(@RequestBody Task task, @AuthenticationPrincipal Jwt jwt) {
+
+        task.setUserId(jwt.getSubject());
 
         // проверка на обязательные параметры
         if (task.getId() != null && task.getId() != 0) {
             // id создается автоматически в БД (autoincrement), поэтому его передавать не нужно, иначе может быть конфликт уникальности значения
-            return new ResponseEntity("redundant param: id MUST be null", HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity("redundant param: task id MUST be null", HttpStatus.NOT_ACCEPTABLE);
         }
 
         // если передали пустое значение title
@@ -73,7 +77,7 @@ public class TaskController {
         }
 
         //если такой пользователь существует
-        if (userRestClient.userExists(task.getUserId())) {
+        if (!task.getUserId().isBlank()) {
             return ResponseEntity.ok(taskService.add(task)); // возвращаем созданный объект со сгенерированным id
         }
 
@@ -162,9 +166,9 @@ public class TaskController {
         Long userId = taskSearchValues.getUserId() != null ? taskSearchValues.getUserId() : null; // для показа задач только этого пользователя
 
         // проверка на обязательные параметры
-        if (userId == null || userId == 0) {
+/*        if (userId == null || userId == 0) {
             return new ResponseEntity("missed param: user id", HttpStatus.NOT_ACCEPTABLE);
-        }
+        }*/
 
 
         // чтобы захватить в выборке все задачи по датам, независимо от времени - можно выставить время с 00:00 до 23:59
