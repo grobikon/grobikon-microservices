@@ -34,7 +34,7 @@ import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/user") // базовый URI
-public class UserController {
+public class AdminController {
 
     public static final String ID_COLUMN = "id"; // имя столбца id
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
@@ -44,10 +44,10 @@ public class UserController {
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public UserController(UserService userService,
-                          UserWebClient userWebClient,
-                          MessageProducer messageProducer,
-                          MessageFuncActions messageFuncActions) {
+    public AdminController(UserService userService,
+                           UserWebClient userWebClient,
+                           MessageProducer messageProducer,
+                           MessageFuncActions messageFuncActions) {
         this.userService = userService;
         this.userWebClient = userWebClient;
         this.messageProducer = messageProducer;
