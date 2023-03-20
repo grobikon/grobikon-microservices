@@ -9,42 +9,42 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.grobikon.common.grobikoncommonentity.entity.User;
 import ru.grobikon.common.grobikonutils.webclient.UserWebClient;
+import ru.grobikon.micro.grobikonusers.dto.UserDTO;
+import ru.grobikon.micro.grobikonusers.keycloak.KeycloakUtils;
 import ru.grobikon.micro.grobikonusers.mq.func.MessageFuncActions;
 import ru.grobikon.micro.grobikonusers.mq.legacy.MessageProducer;
 import ru.grobikon.micro.grobikonusers.search.UserSearchValues;
 import ru.grobikon.micro.grobikonusers.service.UserService;
 
+import javax.ws.rs.core.Response;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
 
 
-/*
-
-Чтобы дать меньше шансов для взлома (например, CSRF атак): POST/PUT запросы могут изменять/фильтровать закрытые данные, а GET запросы - для получения незащищенных данных
-Т.е. GET-запросы не должны использоваться для изменения/получения секретных данных
-
-Если возникнет exception - вернется код  500 Internal Server Error, поэтому не нужно все действия оборачивать в try-catch
-
-Используем @RestController вместо обычного @Controller, чтобы все ответы сразу оборачивались в JSON,
-иначе пришлось бы добавлять лишние объекты в код, использовать @ResponseBody для ответа, указывать тип отправки JSON
-
-Названия методов могут быть любыми, главное не дублировать их имена и URL mapping
-
-*/
-
+/**
+ * Чтобы дать меньше шансов для взлома (например, CSRF атак): POST/PUT запросы могут изменять/фильтровать закрытые данные, а GET запросы - для получения незащищенных данных
+ * Т.е. GET-запросы не должны использоваться для изменения/получения секретных данных
+ * Если возникнет exception - вернется код 500 Internal Server Error, поэтому не нужно все действия оборачивать в try-catch
+ * Используем @RestController вместо обычного @Controller, чтобы все ответы сразу оборачивались в JSON,
+ * иначе пришлось бы добавлять лишние объекты в код, использовать @ResponseBody для ответа, указывать тип отправки JSON
+ * Названия методов могут быть любыми, главное не дублировать их имена и URL mapping
+ */
 @RestController
-@RequestMapping("/user") // базовый URI
+@RequestMapping("/admin/user") // базовый URI
 public class AdminController {
 
     public static final String ID_COLUMN = "id"; // имя столбца id
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
+    private final KeycloakUtils keycloakUtils;
     private final UserWebClient userWebClient;
     private final MessageProducer messageProducer;
+    // для отправки сообщения по требованию (реализовано с помощью функц. кода)
     private final MessageFuncActions messageFuncActions;
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
-    public AdminController(UserService userService,
+    public AdminController(KeycloakUtils keycloakUtils,
+                           UserService userService,
                            UserWebClient userWebClient,
                            MessageProducer messageProducer,
                            MessageFuncActions messageFuncActions) {
@@ -52,50 +52,36 @@ public class AdminController {
         this.userWebClient = userWebClient;
         this.messageProducer = messageProducer;
         this.messageFuncActions = messageFuncActions;
+        this.keycloakUtils = keycloakUtils;
     }
 
 
     // добавление
     @PostMapping("/add")
-    public ResponseEntity<User> add(@RequestBody User user) {
+    public ResponseEntity add(@RequestBody UserDTO userDTO) {
 
         // проверка на обязательные параметры
-        if (user.getId() != null && user.getId() != 0) {
+        if (userDTO.getId() != null && userDTO.getId() != 0) {
             // id создается автоматически в БД (autoincrement), поэтому его передавать не нужно, иначе может быть конфликт уникальности значения
             return new ResponseEntity("redundant param: id MUST be null", HttpStatus.NOT_ACCEPTABLE);
         }
 
         // если передали пустое значение
-        if (user.getEmail() == null || user.getEmail().trim().length() == 0) {
+        if (userDTO.getEmail() == null || userDTO.getEmail().trim().length() == 0) {
             return new ResponseEntity("missed param: email", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        if (user.getPassword() == null || user.getPassword().trim().length() == 0) {
+        if (userDTO.getPassword() == null || userDTO.getPassword().trim().length() == 0) {
             return new ResponseEntity("missed param: password", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        if (user.getUsername() == null || user.getUsername().trim().length() == 0) {
+        if (userDTO.getUsername() == null || userDTO.getUsername().trim().length() == 0) {
             return new ResponseEntity("missed param: username", HttpStatus.NOT_ACCEPTABLE);
         }
 
-        //добавляем пользователя
-        user = userService.add(user);
+        Response createdResponse = keycloakUtils.createKeycloakUser(userDTO);
 
-//        if (user != null) {
-//            //заполняем начальные данные пользователя (в параллельном потоке)
-//            userWebClient.initUserDataAsync(user.getId())
-//                    .subscribe(result -> System.out.println("user populated: " + result));
-//        }
-
-//        if (user != null) {
-//            // отправляем сообщение в канал
-//            messageProducer.initUserData(user.getId());
-//        }
-
-        // отправляем сообщение с помощью функ. кода
-        messageFuncActions.sendNewUserMessage(user.getId());
-
-        return ResponseEntity.ok(userService.add(user)); // возвращаем созданный объект со сгенерированным id
+        return ResponseEntity.status(createdResponse.getStatus()).build(); // возвращаем созданный объект со сгенерированным id
 
     }
 
