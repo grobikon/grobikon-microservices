@@ -34,8 +34,7 @@ public class SpringSecurityConfig {
 
         // все сетевые настройки
         http.authorizeRequests()
-                .antMatchers("/user/*").hasRole("user")
-                .antMatchers("/admin/*").hasRole("admin")
+                .antMatchers("/category/*", "/priority/*", "/task/*").hasRole("user")
                 .anyRequest().authenticated() // остальной API будет доступен только аутентифицированным пользователям
 
                 .and() // добавляем новые настройки, не связанные с предыдущими
