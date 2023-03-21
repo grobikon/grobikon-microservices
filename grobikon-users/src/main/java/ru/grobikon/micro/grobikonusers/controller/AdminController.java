@@ -1,5 +1,6 @@
 package ru.grobikon.micro.grobikonusers.controller;
 
+import org.keycloak.admin.client.CreatedResponseUtil;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -8,11 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.grobikon.common.grobikoncommonentity.entity.User;
-import ru.grobikon.common.grobikonutils.webclient.UserWebClient;
 import ru.grobikon.micro.grobikonusers.dto.UserDTO;
 import ru.grobikon.micro.grobikonusers.keycloak.KeycloakUtils;
-import ru.grobikon.micro.grobikonusers.mq.func.MessageFuncActions;
-import ru.grobikon.micro.grobikonusers.mq.legacy.MessageProducer;
 import ru.grobikon.micro.grobikonusers.search.UserSearchValues;
 import ru.grobikon.micro.grobikonusers.service.UserService;
 
@@ -34,24 +32,15 @@ import java.util.NoSuchElementException;
 public class AdminController {
 
     public static final String ID_COLUMN = "id"; // имя столбца id
+    private static final int CONFLICT = 409; // если пользователь уже существует в KC и пытаемся создать такого же
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
     private final KeycloakUtils keycloakUtils;
-    private final UserWebClient userWebClient;
-    private final MessageProducer messageProducer;
-    // для отправки сообщения по требованию (реализовано с помощью функц. кода)
-    private final MessageFuncActions messageFuncActions;
 
     // используем автоматическое внедрение экземпляра класса через конструктор
     // не используем @Autowired ля переменной класса, т.к. "Field injection is not recommended "
     public AdminController(KeycloakUtils keycloakUtils,
-                           UserService userService,
-                           UserWebClient userWebClient,
-                           MessageProducer messageProducer,
-                           MessageFuncActions messageFuncActions) {
+                           UserService userService) {
         this.userService = userService;
-        this.userWebClient = userWebClient;
-        this.messageProducer = messageProducer;
-        this.messageFuncActions = messageFuncActions;
         this.keycloakUtils = keycloakUtils;
     }
 
@@ -79,7 +68,17 @@ public class AdminController {
             return new ResponseEntity("missed param: username", HttpStatus.NOT_ACCEPTABLE);
         }
 
+        // создаем пользователя
         Response createdResponse = keycloakUtils.createKeycloakUser(userDTO);
+
+        if (createdResponse.getStatus() == CONFLICT) {
+            return new ResponseEntity("user or email already exists " + userDTO.getEmail(), HttpStatus.CONFLICT);
+        }
+
+        // получаем его ID
+        String userId = CreatedResponseUtil.getCreatedId(createdResponse);
+
+        System.out.printf("User created with userId: %s%n", userId);
 
         return ResponseEntity.status(createdResponse.getStatus()).build(); // возвращаем созданный объект со сгенерированным id
 

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.grobikon.micro.grobikonusers.dto.UserDTO;
 
+import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
 
@@ -31,7 +32,9 @@ public class KeycloakUtils {
     private static RealmResource realmResource; // доступ к API realm
     private static UsersResource usersResource;   // доступ к API для работы с пользователями
 
-    // создание объекта KC
+
+    // создание объектов KC - будет выполняться после инициализации Spring бина
+    @PostConstruct
     public Keycloak getInstance() {
         if (keycloak == null) { // создаем объект только 1 раз
 
@@ -53,7 +56,6 @@ public class KeycloakUtils {
 
     // создание пользователя для KC
     public Response createKeycloakUser(UserDTO user) {
-
         // данные пароля - специальный объект-контейнер CredentialRepresentation
         CredentialRepresentation credentialRepresentation = createPasswordCredentials(user.getPassword());
 
