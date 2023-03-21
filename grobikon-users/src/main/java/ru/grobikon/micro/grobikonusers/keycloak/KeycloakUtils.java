@@ -98,6 +98,49 @@ public class KeycloakUtils {
 
     }
 
+
+
+    // удаление пользователя для KC
+    public void deleteKeycloakUser(String userId) {
+
+        // получаем пользователя
+        UserResource uniqueUserResource = usersResource.get(userId);
+        uniqueUserResource.remove();
+
+    }
+
+    // обновление пользователя для KC
+    public void updateKeycloakUser(UserDTO userDTO) {
+
+        // данные пароля - специальный объект-контейнер CredentialRepresentation
+        CredentialRepresentation credentialRepresentation = createPasswordCredentials(userDTO.getPassword());
+
+        // какие поля обновляем
+        UserRepresentation kcUser = new UserRepresentation();
+        kcUser.setUsername(userDTO.getUsername());
+        kcUser.setCredentials(Collections.singletonList(credentialRepresentation));
+        kcUser.setEmail(userDTO.getEmail());
+
+        // получаем пользователя
+        UserResource uniqueUserResource = usersResource.get(userDTO.getId());
+        uniqueUserResource.update(kcUser); // обновление
+
+    }
+
+    // поиск уникального пользователя
+    public UserRepresentation findUserById(String userId){
+        // получаем пользователя
+        return usersResource.get(userId).toRepresentation();
+    }
+
+    // поиск пользователя по любым атрибутам (вхождение текста)
+    public List<UserRepresentation> searchKeycloakUsers(String text) {
+
+        // получаем пользователя
+        return usersResource.searchByAttributes(text);
+
+    }
+
     // данные о пароле
     private CredentialRepresentation createPasswordCredentials(String password) {
         CredentialRepresentation passwordCredentials = new CredentialRepresentation();
