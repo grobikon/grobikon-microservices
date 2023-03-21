@@ -16,6 +16,8 @@ import ru.grobikon.micro.grobikonusers.service.UserService;
 
 import javax.ws.rs.core.Response;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 
@@ -33,6 +35,7 @@ public class AdminController {
 
     public static final String ID_COLUMN = "id"; // имя столбца id
     private static final int CONFLICT = 409; // если пользователь уже существует в KC и пытаемся создать такого же
+    private static final String USER_ROLE_NAME = "user"; // название роли из KC
     private final UserService userService; // сервис для доступа к данным (напрямую к репозиториям не обращаемся)
     private final KeycloakUtils keycloakUtils;
 
@@ -79,6 +82,11 @@ public class AdminController {
         String userId = CreatedResponseUtil.getCreatedId(createdResponse);
 
         System.out.printf("User created with userId: %s%n", userId);
+
+        List<String> defaultRoles = new ArrayList<>();
+        defaultRoles.add(USER_ROLE_NAME); // эта роль должна присутствовать в KC на уровне Realm
+
+        keycloakUtils.addRoles(userId, defaultRoles);
 
         return ResponseEntity.status(createdResponse.getStatus()).build(); // возвращаем созданный объект со сгенерированным id
 

@@ -4,8 +4,10 @@ import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,7 +15,9 @@ import ru.grobikon.micro.grobikonusers.dto.UserDTO;
 
 import javax.annotation.PostConstruct;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 @Service
 public class KeycloakUtils {
@@ -69,9 +73,28 @@ public class KeycloakUtils {
         kcUser.setEmailVerified(false);
 
         // вызов KC (всю внутреннюю кухню за нас делает библиотека - формирует REST запросы, заполняет параметры и пр.)
-        Response response = usersResource.create(kcUser);
 
-        return response;
+        return usersResource.create(kcUser);
+
+    }
+
+    // добавление роли пользователю
+    public void addRoles(String userId, List<String> roles) {
+
+        // список доступных ролей в Realm
+        List<RoleRepresentation> kcRoles = new ArrayList<>();
+
+        // преобразуем тексты в спец. объекты RoleRepresentation, который понятен для KC
+        for (String role: roles) {
+            RoleRepresentation roleRep = realmResource.roles().get(role).toRepresentation();
+            kcRoles.add(roleRep);
+        }
+
+        // получаем пользователя
+        UserResource uniqueUserResource = usersResource.get(userId);
+
+        // и добавляем ему Realm-роли (т.е. роль добавится в общий список Roles)
+        uniqueUserResource.roles().realmLevel().add(kcRoles);
 
     }
 
