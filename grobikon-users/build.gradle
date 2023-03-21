@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.7.0'
+    id 'org.springframework.boot' version '2.7.2'
     id 'io.spring.dependency-management' version '1.0.12.RELEASE'
     id 'java'
 }
@@ -21,7 +21,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.cloud:spring-cloud-starter-config'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation ('org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'){
         exclude group: 'javax.ws.rs', module: 'jsr311-api' // нужно исключить эту реализацию, которая несовместима  keycloak
@@ -29,7 +28,6 @@ dependencies {
         // https://stackoverflow.com/questions/38320163/failed-adding-user-by-keycloak-admin-client-to-keycloak-due-to-unknown-resource
         // https://stackoverflow.com/questions/50334943/springboot-keycloak-nosuchmethoderror-javax-ws-rs-core-uribuilder-resolvetempla
     }
-    implementation 'ru.grobikon.common:grobikon-common-entity'
     implementation 'ru.grobikon.common:grobikon-utils'
     implementation 'org.springframework.cloud:spring-cloud-starter-stream-rabbit'
 
@@ -40,9 +38,6 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
-
-    // драйвер БД
-    runtimeOnly 'org.postgresql:postgresql'
 }
 
 dependencyManagement {
