@@ -116,7 +116,7 @@ public class AdminController {
     }
 
     // получение уникального объекта по email
-    @PostMapping("/email")
+    @PostMapping("/search")
     public ResponseEntity<List<UserRepresentation>> search(@RequestBody String email) { // строго соответствие email
         return ResponseEntity.ok(keycloakUtils.searchKeycloakUsers(email));
     }
