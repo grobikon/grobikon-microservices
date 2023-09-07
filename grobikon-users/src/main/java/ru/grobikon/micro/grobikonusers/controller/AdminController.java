@@ -45,10 +45,10 @@ public class AdminController {
     public ResponseEntity add(@RequestBody UserDTO userDTO) {
 
         // проверка на обязательные параметры
-        if (!userDTO.getId().isBlank()) {
+/*        if (!userDTO.getId().isBlank()) {
             // id создается автоматически в БД (autoincrement), поэтому его передавать не нужно, иначе может быть конфликт уникальности значения
             return new ResponseEntity("redundant param: id MUST be null", HttpStatus.NOT_ACCEPTABLE);
-        }
+        }*/
 
         // если передали пустое значение
         if (userDTO.getEmail() == null || userDTO.getEmail().trim().length() == 0) {
